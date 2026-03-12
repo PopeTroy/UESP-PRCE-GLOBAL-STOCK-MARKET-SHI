@@ -32,8 +32,13 @@ jobs:
 
       - name: Commit and Push SHI Data
         run: |
+          # 1. Set Identity
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
+          
+          # 2. Add the file
           git add shi_data.json
-          # Only commit if changes exist; prevents crash if data is identical
-          git diff --quiet && git diff --staged --quiet || (git commit -m "UESP PRCE: Audit Sync $(date)" && git push)
+          
+          # 3. Use the GITHUB_TOKEN directly in the push URL to force access
+          git commit -m "UESP PRCE: Audit Sync $(date)" || echo "No changes to commit"
+          git push https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:main
