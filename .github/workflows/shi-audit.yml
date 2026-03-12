@@ -24,4 +24,4 @@ jobs:
           MASSIVE_ACCESS_KEY: ${{ secrets.MASSIVE_ACCESS_KEY_ID }}
           MASSIVE_SECRET_KEY: ${{ secrets.MASSIVE_SECRET_KEY }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-        run: python src/mega_circuit_audit.py
+        run: python main.py
