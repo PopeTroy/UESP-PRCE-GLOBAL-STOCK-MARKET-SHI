@@ -8,12 +8,12 @@ jobs:
   audit:
     runs-on: ubuntu-latest
     permissions:
-      contents: write # Internal permission for the runner
+      contents: write
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }} # Uses the built-in security token
+          persist-credentials: true
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -32,13 +32,9 @@ jobs:
 
       - name: Commit and Push SHI Data
         run: |
-          # 1. Set Identity
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          
-          # 2. Add the file
           git add shi_data.json
-          
-          # 3. Use the GITHUB_TOKEN directly in the push URL to force access
-          git commit -m "UESP PRCE: Audit Sync $(date)" || echo "No changes to commit"
-          git push https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:main
+          # The '|| exit 0' ensures that if no data changed, the script doesn't crash
+          git commit -m "UESP PRCE: Audit Sync $(date)" || exit 0
+          git push
