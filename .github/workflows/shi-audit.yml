@@ -13,7 +13,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          persist-credentials: true
+          persist-credentials: false # We will provide credentials manually below
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -31,10 +31,18 @@ jobs:
         run: python main.py
 
       - name: Commit and Push SHI Data
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add shi_data.json
-          # The '|| exit 0' ensures that if no data changed, the script doesn't crash
-          git commit -m "UESP PRCE: Audit Sync $(date)" || exit 0
-          git push
+          
+          # Only commit if there are changes
+          if ! git diff --cached --exit-code; then
+            git commit -m "UESP PRCE: Audit Update $(date)"
+            # Force push using the GITHUB_TOKEN directly in the URL
+            git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git" HEAD:main --force
+          else
+            echo "No changes detected in SHI data."
+          fi
