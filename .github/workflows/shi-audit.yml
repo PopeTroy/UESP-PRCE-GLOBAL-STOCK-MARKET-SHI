@@ -8,35 +8,32 @@ jobs:
   audit:
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # Explicitly requesting the write key
+      contents: write
     steps:
-      - name: Checkout Repository
+      - name: Checkout
         uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }} # Hard-codes the key into the checkout
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
-      - name: Install Dependencies
-        run: pip install boto3 groq requests
+      - name: Install
+        run: pip install boto3 groq requests apify-client
 
-      - name: Run Mega Circuit Logic
+      - name: Run Audit Engine
         env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          IP_TOKEN: ${{ secrets.IP_TOKEN }}
+          APIFY_TOKEN: ${{ secrets.APIFY_TOKEN }}
           MASSIVE_ACCESS_KEY: ${{ secrets.MASSIVE_ACCESS_KEY_ID }}
           MASSIVE_SECRET_KEY: ${{ secrets.MASSIVE_SECRET_KEY }}
-          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
         run: python main.py
 
-      - name: Commit and Push SHI Data
+      - name: Deploy Result
         run: |
-          git config --global user.name "GitHub Action"
-          git config --global user.email "action@github.com"
-          
+          git config --global user.name "UESP-Bot"
+          git config --global user.email "bot@uesp.io"
           git add shi_data.json
-          
-          # This line forces the push using the token as a password
-          git commit -m "UESP PRCE: Sync $(date)" || exit 0
+          git commit -m "UESP Audit Update" || exit 0
           git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:main
